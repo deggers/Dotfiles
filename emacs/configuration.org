@@ -45,7 +45,7 @@ Disables UI-Elements to enforce use of keyboard
    #+BEGIN_SRC emacs-lisp
    (set-frame-font "Source Code Pro-12" nil t)
    #+END_SRC
-** Dialogs and Screens 
+** Dialogs and Screens
 First screen will be Scratch-Blog
 #+BEGIN_SRC emacs-lisp
    (setq inhibit-splash-screen t)
@@ -67,41 +67,41 @@ Set a nice theme
 :ensure t)
 #+END_SRC
 
-Other stuf i need to declutter later .. 
+Other stuf i need to declutter later ..
 #+BEGIN_SRC emacs-lisp
-  (use-package 
-    which-key 
+  (use-package
+    which-key
     :config (which-key-mode 1))
 
-  (use-package 
-    general 
-    :after which-key 
+  (use-package
+    general
+    :after which-key
     :config (general-override-mode 1)
-    (defun find-user-init-file () 
-      "Edit the `user-init-file', in same window." 
-      (interactive) 
-      (find-file user-init-file)) 
+    (defun find-user-init-file ()
+      "Edit the `user-init-file', in same window."
+      (interactive)
+      (find-file user-init-file))
 
-    (defun load-user-init-file () 
-      "Load the `user-init-file', in same window." 
-      (interactive) 
+    (defun load-user-init-file ()
+      "Load the `user-init-file', in same window."
+      (interactive)
       (load-file user-init-file))
 
-    (general-create-definer tyrant-def 
-      :states '(normal visual insert motion emacs) 
-      :prefix "SPC" 
+    (general-create-definer tyrant-def
+      :states '(normal visual insert motion emacs)
+      :prefix "SPC"
       :non-normal-prefix "C-SPC")
 
-    (general-create-definer despot-def 
-      :states '(normal insert) 
-      :prefix "SPC" 
+    (general-create-definer despot-def
+      :states '(normal insert)
+      :prefix "SPC"
       :non-normal-prefix "C-SPC")
-   
-   (general-define-key :keymaps 'key-translation-map 
+
+   (general-define-key :keymaps 'key-translation-map
 			"ESC" (kbd "C-g"))
-  
+
   (general-def "C-x x" 'eval-defun)
-  
+
   (tyrant-def
     ""     nil
     "c"   (general-simulate-key "C-c")
@@ -123,22 +123,22 @@ Other stuf i need to declutter later ..
     "wd" 'delete-window
     "wD" 'delete-other-windows))
 
-  (use-package 
-    evil 
-    :hook (after-init . evil-mode) 
-    :config (evil-set-initial-state 'shell-mode 'normal) 
-    (evil-set-initial-state 'doc-view-mode 'normal) 
-    (evil-set-initial-state 'package-menu-mode 'normal) 
-    (evil-set-initial-state 'biblio-selection-mode 'motion) 
-    (setq doc-view-continuous t) 
-    :general 
-    (tyrant-def 
-      "wh"  'evil-window-left 
-      "wl"  'evil-window-right 
-      "wj"  'evil-window-down 
-      "wk"  'evil-window-up 
-      "bN"  'evil-buffer-new 
-      "]b"  'evil-next-buffer 
+  (use-package
+    evil
+    :hook (after-init . evil-mode)
+    :config (evil-set-initial-state 'shell-mode 'normal)
+    (evil-set-initial-state 'doc-view-mode 'normal)
+    (evil-set-initial-state 'package-menu-mode 'normal)
+    (evil-set-initial-state 'biblio-selection-mode 'motion)
+    (setq doc-view-continuous t)
+    :general
+    (tyrant-def
+      "wh"  'evil-window-left
+      "wl"  'evil-window-right
+      "wj"  'evil-window-down
+      "wk"  'evil-window-up
+      "bN"  'evil-buffer-new
+      "]b"  'evil-next-buffer
       "[b"  'evil-prev-buffer))
 
 
@@ -191,7 +191,7 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
            "d"   'org-babel-remove-result))
 #+END_SRC
 ** Evil
-   Behaves like VIM :) 
+   Behaves like VIM :)
    *** Undo
    The default undo behavior in Evil is too coarse-grained because it considers anything taking place between entering insert mode and leaving it as one edit operation. When you enter a whole paragraph of text during one insert and then execute undo, the whole paragraph is removed. In contrast to that, Vim starts a new undo unit whenever you move the cursor in insert mode by means other than entering text.
 
@@ -199,12 +199,17 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
 "undo-tree prematurely and unpredictably truncates undo history. This is better than total data corruption, but still makes me nervous about undoing beyond ~5 steps. Undo-fu doesn't appear to suffer the same problem. We sacrifice the tree-visualizer, but at least we get history persistence with undo-fu-session."
    #+BEGIN_SRC emacs-lisp
    (use-package undo-fu
-     :ensure t 
+     :ensure t
      :config
        (global-undo-tree-mode -1)
-     :general 
-     (tyrant-def 
-      "u"  'undo-fu-only-undo 
+     :general
+     (tyrant-def
+      "u"  'undo-fu-only-undo
       "U"  'undo-fu-only-redo))
    #+END_SRC
-   
+** Hooks
+   *** No Trailing whitespaces
+I never want whitespace at the end of lines. Remove it on save.
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+#+END_SRC
