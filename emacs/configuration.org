@@ -69,12 +69,10 @@ Set a nice theme
 
 Other stuf i need to declutter later ..
 #+BEGIN_SRC emacs-lisp
-  (use-package
-    which-key
+  (use-package which-key
     :config (which-key-mode 1))
 
-  (use-package
-    general
+  (use-package general
     :after which-key
     :config (general-override-mode 1)
     (defun find-user-init-file ()
@@ -123,8 +121,7 @@ Other stuf i need to declutter later ..
     "wd" 'delete-window
     "wD" 'delete-other-windows))
 
-  (use-package
-    evil
+  (use-package evil
     :hook (after-init . evil-mode)
     :config (evil-set-initial-state 'shell-mode 'normal)
     (evil-set-initial-state 'doc-view-mode 'normal)
@@ -142,6 +139,12 @@ Other stuf i need to declutter later ..
       "[b"  'evil-prev-buffer))
 
 
+
+
+#+END_SRC
+** Helm
+Helm stuff
+#+BEGIN_SRC emacs-lisp
 (use-package helm
     :hook (after-init . helm-mode)
     :config (require 'helm-config)
@@ -151,6 +154,8 @@ Other stuf i need to declutter later ..
                helm-locate
                helm-M-x
                helm-flyspell-correct)
+    :bind (:map helm-map
+                ([tab] . helm-execute-persistent-action))
     :general
       (tyrant-def
         "SPC" 'helm-M-x
@@ -158,9 +163,7 @@ Other stuf i need to declutter later ..
         "ff"  'helm-find-files
         "fr"  'helm-recentf
         "fL"  'helm-locate))
-
 #+END_SRC
-
 ** Parentheses
 Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimiters such as parentheses, brackets or braces according to their depth. Each successive level is highlighted in a different color. This makes it easy to spot matching delimiters, orient yourself in the code, and tell which statements are at a given depth.
 #+BEGIN_SRC emacs-lisp
