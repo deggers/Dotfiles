@@ -72,6 +72,15 @@ Other stuf i need to declutter later ..
   (use-package which-key
     :config (which-key-mode 1))
 
+
+
+
+
+
+
+#+END_SRC
+** General
+#+begin_src emacs-lisp
   (use-package general
     :after which-key
     :config (general-override-mode 1)
@@ -113,35 +122,16 @@ Other stuf i need to declutter later ..
     ;; Window operations
     "w"   '(:ignore t :which-key "Window")
     "wm" 'maximize-window
-    "w/" 'split-window-horizontally
+    "wh" 'split-window-horizontally
     "wv" 'split-window-vertically
     "wm" 'maximize-window
     "wu" 'winner-undo
     "ww" 'other-window
     "wd" 'delete-window
-    "wD" 'delete-other-windows))
-
-  (use-package evil
-    :hook (after-init . evil-mode)
-    :config (evil-set-initial-state 'shell-mode 'normal)
-    (evil-set-initial-state 'doc-view-mode 'normal)
-    (evil-set-initial-state 'package-menu-mode 'normal)
-    (evil-set-initial-state 'biblio-selection-mode 'motion)
-    (setq doc-view-continuous t)
-    :general
-    (tyrant-def
-      "wh"  'evil-window-left
-      "wl"  'evil-window-right
-      "wj"  'evil-window-down
-      "wk"  'evil-window-up
-      "bN"  'evil-buffer-new
-      "]b"  'evil-next-buffer
-      "[b"  'evil-prev-buffer))
-
-
-
-
-#+END_SRC
+    "wD" 'delete-other-windows
+    ;; Buffer
+    "b" '(:ignore t :which-key "Buffer")) )
+#+end_src
 ** Helm
 Helm stuff
 #+BEGIN_SRC emacs-lisp
@@ -159,10 +149,24 @@ Helm stuff
     :general
       (tyrant-def
         "SPC" 'helm-M-x
-        "bm"  'helm-mini
+        "bl"  'helm-buffers-list
         "ff"  'helm-find-files
         "fr"  'helm-recentf
         "fL"  'helm-locate))
+#+END_SRC
+** Helm-Org
+Install helm-org to find files with tags
+#+BEGIN_SRC emacs-lisp
+(use-package helm-org)
+#+END_SRC
+** Evil-Magit
+#+begin_src emacs-lisp
+(use-package evil-magit)
+#+end_src
+** Haskell
+Stuff for haskell development
+#+BEGIN_SRC emacs-lisp
+(use-package haskell-mode)
 #+END_SRC
 ** Parentheses
 Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimiters such as parentheses, brackets or braces according to their depth. Each successive level is highlighted in a different color. This makes it easy to spot matching delimiters, orient yourself in the code, and tell which statements are at a given depth.
@@ -191,11 +195,35 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
            "t"   'org-hide-block-toggle
            "x"   'org-babel-execute-src-block
            "X"   'org-babel-execute-and-next
-           "d"   'org-babel-remove-result))
+           "d"   'org-babel-remove-result
+	   "s"   'org-insert-structure-template))
+#+END_SRC
+*** Adjust Agenda path
+#+BEGIN_SRC emacs-lisp
+(setq org-agenda-files '("~/Org"))
 #+END_SRC
 ** Evil
+*** package
+  #+BEGIN_SRC emacs-lisp
+  (use-package evil
+    :hook (after-init . evil-mode)
+    :config (evil-set-initial-state 'shell-mode 'normal)
+    (evil-set-initial-state 'doc-view-mode 'normal)
+    (evil-set-initial-state 'package-menu-mode 'normal)
+    (evil-set-initial-state 'biblio-selection-mode 'motion)
+    (setq doc-view-continuous t)
+    :general
+    (tyrant-def
+      "wh"  'evil-window-left
+      "wl"  'evil-window-right
+      "wj"  'evil-window-down
+      "wk"  'evil-window-up
+      "bN"  'evil-buffer-new
+      "]b"  'evil-next-buffer
+      "[b"  'evil-prev-buffer))
+   #+END_SRC
    Behaves like VIM :)
-   *** Undo
+*** Undo
    The default undo behavior in Evil is too coarse-grained because it considers anything taking place between entering insert mode and leaving it as one edit operation. When you enter a whole paragraph of text during one insert and then execute undo, the whole paragraph is removed. In contrast to that, Vim starts a new undo unit whenever you move the cursor in insert mode by means other than entering text.
 
    Like in Doom i use undo-fu https://github.com/hlissner/doom-emacs/issues/2339#issuecomment-610706411
