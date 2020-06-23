@@ -1,0 +1,246 @@
+#+STARTUP: content
+* Before it all
+#+BEGIN_SRC emacs-lisp
+(eval-and-compile
+  (setq load-prefer-newer t
+          package-user-dir "~/.emacs.d/elpa"
+          package--init-file-ensured t
+          package-enable-at-startup nil)
+
+    (unless (file-directory-p package-user-dir)
+        (make-directory package-user-dir t))
+
+      (setq load-path (append load-path (directory-files package-user-dir t "^[^.]" t))))
+
+(eval-when-compile
+  (require 'package)
+  ;; tells emacs not to load any packages before starting up
+  ;; the following lines tell emacs where on the internet to look up
+  ;; for new packages.
+  (setq package-archives '(("melpa"     . "https://melpa.org/packages/")
+                             ("elpa"      . "https://elpa.gnu.org/packages/")
+                             ("repo-org"  . "https://orgmode.org/elpa/")))
+  ;; (package-initialize)
+  (unless package--initialized (package-initialize t))
+
+  ;; Bootstrap `use-package'
+  (unless (package-installed-p 'use-package) ; unless it is already installed
+          (package-refresh-contents) ; updage packages archive
+          (package-install 'use-package)) ; and install the most recent version of use-package
+(eval-when-compile
+  (require 'use-package))
+(setq use-package-always-ensure t))
+#+END_SRC
+
+* Interface Tweaks
+** Disabling UI-Elements
+Disables UI-Elements to enforce use of keyboard
+#+BEGIN_SRC emacs-lisp
+(menu-bar-mode -1)
+(toggle-scroll-bar -1)
+(tool-bar-mode -1)
+#+END_SRC
+** Font
+   Adjust the font
+   #+BEGIN_SRC emacs-lisp
+   (set-frame-font "Source Code Pro-12" nil t)
+   #+END_SRC
+** Dialogs and Screens
+First screen will be Scratch-Blog
+#+BEGIN_SRC emacs-lisp
+   (setq inhibit-splash-screen t)
+#+END_SRC
+
+For easier up and down jumping in evil-mode
+#+BEGIN_SRC emacs-lisp
+(setq display-line-numbers-type 'relative)
+#+END_SRC
+
+Set a nice theme
+#+BEGIN_SRC emacs-lisp
+(use-package dracula-theme
+    :ensure t
+    :config (load-theme 'dracula t)
+    :pin melpa)
+
+(use-package elisp-format
+:ensure t)
+#+END_SRC
+
+Other stuf i need to declutter later ..
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :config (which-key-mode 1))
+
+
+
+
+
+
+
+#+END_SRC
+** General
+#+begin_src emacs-lisp
+  (use-package general
+    :after which-key
+    :config (general-override-mode 1)
+    (defun find-user-init-file ()
+      "Edit the `user-init-file', in same window."
+      (interactive)
+      (find-file user-init-file))
+
+    (defun load-user-init-file ()
+      "Load the `user-init-file', in same window."
+      (interactive)
+      (load-file user-init-file))
+
+    (general-create-definer tyrant-def
+      :states '(normal visual insert motion emacs)
+      :prefix "SPC"
+      :non-normal-prefix "C-SPC")
+
+    (general-create-definer despot-def
+      :states '(normal insert)
+      :prefix "SPC"
+      :non-normal-prefix "C-SPC")
+
+   (general-define-key :keymaps 'key-translation-map
+			"ESC" (kbd "C-g"))
+
+  (general-def "C-x x" 'eval-defun)
+
+  (tyrant-def
+    ""     nil
+    "c"   (general-simulate-key "C-c")
+    "h"   (general-simulate-key "C-h")
+    "u"   (general-simulate-key "C-u")
+    "x"   (general-simulate-key "C-x")
+
+    ;; Package manager
+    "lp"  'list-packages
+    "f" '(:ignore t :which-key "File")
+    ;; Window operations
+    "w"   '(:ignore t :which-key "Window")
+    "wm" 'maximize-window
+    "wh" 'split-window-horizontally
+    "wv" 'split-window-vertically
+    "wm" 'maximize-window
+    "wu" 'winner-undo
+    "ww" 'other-window
+    "wd" 'delete-window
+    "wD" 'delete-other-windows
+    ;; Buffer
+    "b" '(:ignore t :which-key "Buffer")) )
+#+end_src
+** Helm
+Helm stuff
+#+BEGIN_SRC emacs-lisp
+(use-package helm
+    :hook (after-init . helm-mode)
+    :config (require 'helm-config)
+    :commands (helm-mini
+               helm-find-files
+               helm-recentf
+               helm-locate
+               helm-M-x
+               helm-flyspell-correct)
+    :bind (:map helm-map
+                ([tab] . helm-execute-persistent-action))
+    :general
+      (tyrant-def
+        "SPC" 'helm-M-x
+        "bl"  'helm-buffers-list
+        "ff"  'helm-find-files
+        "fr"  'helm-recentf
+        "fL"  'helm-locate))
+#+END_SRC
+** Helm-Org
+Install helm-org to find files with tags
+#+BEGIN_SRC emacs-lisp
+(use-package helm-org)
+#+END_SRC
+** Evil-Magit
+#+begin_src emacs-lisp
+(use-package evil-magit)
+#+end_src
+** Haskell
+Stuff for haskell development
+#+BEGIN_SRC emacs-lisp
+(use-package haskell-mode)
+#+END_SRC
+** Parentheses
+Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimiters such as parentheses, brackets or braces according to their depth. Each successive level is highlighted in a different color. This makes it easy to spot matching delimiters, orient yourself in the code, and tell which statements are at a given depth.
+#+BEGIN_SRC emacs-lisp
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+#+END_SRC
+
+** Org-Mode
+#+BEGIN_SRC emacs-lisp
+(use-package org
+  :defer t
+  :mode ("\\.org\\'" . org-mode)
+  :ensure org-plus-contrib
+  :init
+    (defun my-org-mode-hooks ()
+      (visual-line-mode)
+      (display-line-numbers-mode t)
+      (flyspell-mode)
+      (outline-minor-mode)
+      (electric-pair-mode))
+    (add-hook 'org-mode-hook 'my-org-mode-hooks)
+       :general
+         (despot-def org-mode-map
+           "e"   'org-export-dispatch
+           "t"   'org-hide-block-toggle
+           "x"   'org-babel-execute-src-block
+           "X"   'org-babel-execute-and-next
+           "d"   'org-babel-remove-result
+	   "s"   'org-insert-structure-template))
+#+END_SRC
+*** Adjust Agenda path
+#+BEGIN_SRC emacs-lisp
+(setq org-agenda-files '("~/Org"))
+#+END_SRC
+** Evil
+*** package
+  #+BEGIN_SRC emacs-lisp
+  (use-package evil
+    :hook (after-init . evil-mode)
+    :config (evil-set-initial-state 'shell-mode 'normal)
+    (evil-set-initial-state 'doc-view-mode 'normal)
+    (evil-set-initial-state 'package-menu-mode 'normal)
+    (evil-set-initial-state 'biblio-selection-mode 'motion)
+    (setq doc-view-continuous t)
+    :general
+    (tyrant-def
+      "wh"  'evil-window-left
+      "wl"  'evil-window-right
+      "wj"  'evil-window-down
+      "wk"  'evil-window-up
+      "bN"  'evil-buffer-new
+      "]b"  'evil-next-buffer
+      "[b"  'evil-prev-buffer))
+   #+END_SRC
+   Behaves like VIM :)
+*** Undo
+   The default undo behavior in Evil is too coarse-grained because it considers anything taking place between entering insert mode and leaving it as one edit operation. When you enter a whole paragraph of text during one insert and then execute undo, the whole paragraph is removed. In contrast to that, Vim starts a new undo unit whenever you move the cursor in insert mode by means other than entering text.
+
+   Like in Doom i use undo-fu https://github.com/hlissner/doom-emacs/issues/2339#issuecomment-610706411
+"undo-tree prematurely and unpredictably truncates undo history. This is better than total data corruption, but still makes me nervous about undoing beyond ~5 steps. Undo-fu doesn't appear to suffer the same problem. We sacrifice the tree-visualizer, but at least we get history persistence with undo-fu-session."
+   #+BEGIN_SRC emacs-lisp
+   (use-package undo-fu
+     :ensure t
+     :config
+       (global-undo-tree-mode -1)
+     :general
+     (tyrant-def
+      "u"  'undo-fu-only-undo
+      "U"  'undo-fu-only-redo))
+   #+END_SRC
+** Hooks
+   *** No Trailing whitespaces
+I never want whitespace at the end of lines. Remove it on save.
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+#+END_SRC
