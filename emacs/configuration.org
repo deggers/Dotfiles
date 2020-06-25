@@ -101,8 +101,6 @@ Other stuf i need to declutter later ..
 "u"   (general-simulate-key "C-u")
 "x"   (general-simulate-key "C-x")
 
-;; Package manager
-"lp"  'list-packages
 "f" '(:ignore t :which-key "File")
 ;; Window operations
 "w"   '(:ignore t :which-key "Window")
@@ -126,18 +124,44 @@ Other stuf i need to declutter later ..
   (setq which-key-idle-delay 0.4
         which-key-idle-secondary-delay 0.4))
 #+end_src
+** Backups
+#+begin_src emacs-lisp
+(setq
+   backup-by-copying t      ; don't clobber symlinks
+   backup-directory-alist
+    '(("." . "~/.saves/"))    ; don't litter my fs tree
+   delete-old-versions t
+   kept-new-versions 6
+   kept-old-versions 2
+   version-control t)       ; use versioned backups
+#+end_src
 ** Parentheses
 Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimiters such as parentheses, brackets or braces according to their depth. Each successive level is highlighted in a different color. This makes it easy to spot matching delimiters, orient yourself in the code, and tell which statements are at a given depth.
 #+BEGIN_SRC emacs-lisp
 (use-package rainbow-delimiters
 :hook (prog-mode . rainbow-delimiters-mode))
 #+END_SRC
-** Test-Ivy
+** Helm
 #+begin_src emacs-lisp
-(use-package ivy
-:config (ivy-mode 1))
+(use-package helm
+    :hook (after-init . helm-mode)
+    :config (require 'helm-config)
+    :commands (helm-mini
+               helm-find-files
+               helm-recentf
+               helm-locate
+               helm-M-x
+               helm-flyspell-correct)
+    :bind (:map helm-map
+                ([tab] . helm-execute-persistent-action))
+    :general
+      (tyrant-def
+        "SPC" 'helm-M-x
+        "bl"  'helm-buffers-list
+        "ff"  'helm-find-files
+        "fr"  'helm-recentf
+        "fL"  'helm-locate))
 #+end_src
-
 ** Org-Mode
 #+BEGIN_SRC emacs-lisp
 (use-package org
@@ -282,11 +306,15 @@ set sizes here to stop spacemacs theme resizing these
 #+begin_src emacs-lisp
 (use-package elfeed
   :ensure t
-  :config
-  (evil-set-initial-state 'elfeed-search-mode 'motion)
-  (evil-set-initial-state 'elfeed-show-mode 'motion)
-  :bind (:map elfeed-search-mode-map
-        ("RET" . elfeed-search-show-entry)))
+  :init
+  (evil-set-initial-state 'elfeed-search-mode 'normal)
+  (evil-set-initial-state 'elfeed-show-mode 'normal))
+
+(general-define-key
+   :states '(normal visual)
+   :keymaps 'elfeed-search-mode-map
+   "RET" 'elfeed-search-show-entry
+   "gk" 'org-previous-visible-heading)
 #+end_src
 *** Elfeed-org
 and combine it with org-mode to write convienient elfeeds
