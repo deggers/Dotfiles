@@ -82,6 +82,45 @@ For easier up and down jumping in evil-mode
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 #+END_SRC
+** Powerline bar
+#+BEGIN_SRC emacs-lisp
+(use-package doom-modeline
+  :ensure t
+  :ensure all-the-icons
+  :custom
+    (doom-modeline-icon (display-graphic-p))
+    (doom-modeline-modal-icon t)
+    (doom-modeline-major-mode-color-icon t)
+    (doom-modeline-major-mode-icon t)
+    (doom-modeline-buffer-state-icon t)
+    (doom-modeline-height 20)
+    (doom-modeline-bar-width 0)
+    (doom-modeline-buffer-modification-icon nil) ;; otherwise height is messed up for me
+  :config
+    (setq evil-normal-state-tag   (propertize "[Normal]" 'face '(:foreground "green"))
+      evil-emacs-state-tag    (propertize "[Emacs]" 'face '(:foreground "orange"))
+      evil-insert-state-tag   (propertize "[Insert]" 'face '(:foreground "purple"))
+      evil-motion-state-tag   (propertize "[Motion]" 'face '((:background "blue") :foreground "white"))
+      evil-visual-state-tag   (propertize "[Visual]" 'face '((:background "grey80" :foreground "black")))
+      evil-operator-state-tag (propertize "[Operator]" 'face '((:background "purple"))))
+;; Define your custom doom-modeline
+  (doom-modeline-def-segment evil-state
+  "The current evil state.  Requires `evil-mode' to be enabled."
+  (when (bound-and-true-p evil-local-mode)
+    (s-trim-right (evil-state-property evil-state :tag t))))
+
+  (doom-modeline-def-modeline 'my-simple-line
+    '(bar evil-state matches buffer-info remote-host buffer-position parrot selection-info)
+    '(misc-info minor-modes input-method buffer-encoding major-mode process vcs checker))
+
+  ;; Add to `doom-modeline-mode-hook` or other hooks
+  (defun setup-custom-doom-modeline ()
+     (doom-modeline-set-modeline 'my-simple-line 'default))
+  (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
+
+  :hook
+	  (after-init . doom-modeline-mode))
+#+END_SRC
 * Basic Packages
 ** Diminish
 #+begin_src emacs-lisp
@@ -135,7 +174,7 @@ For easier up and down jumping in evil-mode
     "h"   (general-simulate-key "C-h")
     "u"   (general-simulate-key "C-u")
     "x"   (general-simulate-key "C-x")
-
+    "a"   '(:ignore t :which-key "Apps")
     ;; Package manager
     "lp"  'list-packages
     ;; Window operations
@@ -188,7 +227,10 @@ Install helm-org to find files with tags
 #+END_SRC
 ** Evil-Magit
 #+begin_src emacs-lisp
-(use-package evil-magit)
+(use-package evil-magit
+    :general
+      (tyrant-def
+        "am" 'magit-status))
 #+end_src
 ** Switching easily windows
 #+BEGIN_SRC emacs-lisp
@@ -257,6 +299,8 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
     (evil-set-initial-state 'doc-view-mode 'normal)
     (evil-set-initial-state 'package-menu-mode 'normal)
     (evil-set-initial-state 'biblio-selection-mode 'motion)
+    (setq evil-insert-state-cursor '((bar . 5) "yellow")
+      evil-normal-state-cursor '(box "purple"))
     (setq doc-view-continuous t)
     :general
     (tyrant-def
@@ -294,44 +338,4 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
 I never want whitespace at the end of lines. Remove it on save.
 #+BEGIN_SRC emacs-lisp
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
-#+END_SRC
-** Powerline bar
-#+BEGIN_SRC emacs-lisp
-(use-package doom-modeline
-  :demand t
-  :ensure t
-  :ensure all-the-icons
-  :custom
-    (doom-modeline-icon (display-graphic-p))
-    (doom-modeline-modal-icon t)
-    (doom-modeline-major-mode-color-icon t)
-    (doom-modeline-major-mode-icon t)
-    (doom-modeline-buffer-state-icon t)
-    (doom-modeline-height 20)
-    (doom-modeline-bar-width 0)
-    (doom-modeline-buffer-modification-icon nil) ;; otherwise height is messed up for me
-  :config
-    (setq evil-normal-state-tag   (propertize "[Normal]" 'face '(:foreground "green"))
-      evil-emacs-state-tag    (propertize "[Emacs]" 'face '(:foreground "orange"))
-      evil-insert-state-tag   (propertize "[Insert]" 'face '(:foreground "purple"))
-      evil-motion-state-tag   (propertize "[Motion]" 'face '((:background "blue") :foreground "white"))
-      evil-visual-state-tag   (propertize "[Visual]" 'face '((:background "grey80" :foreground "black")))
-      evil-operator-state-tag (propertize "[Operator]" 'face '((:background "purple"))))
-;; Define your custom doom-modeline
-  (doom-modeline-def-segment evil-state
-  "The current evil state.  Requires `evil-mode' to be enabled."
-  (when (bound-and-true-p evil-local-mode)
-    (s-trim-right (evil-state-property evil-state :tag t))))
-
-  (doom-modeline-def-modeline 'my-simple-line
-    '(bar evil-state matches buffer-info remote-host buffer-position parrot selection-info)
-    '(misc-info minor-modes input-method buffer-encoding major-mode process vcs checker))
-
-  ;; Add to `doom-modeline-mode-hook` or other hooks
-  (defun setup-custom-doom-modeline ()
-     (doom-modeline-set-modeline 'my-simple-line 'default))
-  (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
-
-  :hook
-	  (after-init . doom-modeline-mode))
 #+END_SRC
