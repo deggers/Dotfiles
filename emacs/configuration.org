@@ -27,8 +27,15 @@
   (unless (package-installed-p 'use-package) ; unless it is already installed
           (package-refresh-contents) ; updage packages archive
           (package-install 'use-package)) ; and install the most recent version of use-package
+  ;; Bootstrap `general'
+  (unless (package-installed-p 'general) ; unless it is already installed
+          (package-refresh-contents) ; updage packages archive
+          (package-install 'general)) ; and install the most recent version of general
+
 (eval-when-compile
-  (require 'use-package))
+  (require 'use-package)
+  (require 'general))
+
 (setq use-package-always-ensure t))
 #+END_SRC
 
@@ -55,34 +62,47 @@ For easier up and down jumping in evil-mode
 #+BEGIN_SRC emacs-lisp
 (setq display-line-numbers-type 'relative)
 #+END_SRC
-
-Set a nice theme
+** Theme
 #+BEGIN_SRC emacs-lisp
-(use-package dracula-theme
-    :ensure t
-    :config (load-theme 'dracula t)
-    :pin melpa)
+(use-package doom-themes
+  :config
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-one t)
 
-(use-package elisp-format
-:ensure t)
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  (doom-themes-neotree-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
+  (doom-themes-treemacs-config)
+
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
 #+END_SRC
-
-Other stuf i need to declutter later ..
+* Basic Packages
+** Diminish
+#+begin_src emacs-lisp
+(use-package diminish
+  :config
+  (diminish 'eldoc-mode "")
+  (diminish 'buffer-face-mode "")
+  (diminish 'undo-tree-mode " Ⓤ"))
+#+end_src
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
     :config (which-key-mode 1))
-
-
-
-
-
-
-
+#+END_SRC
+** Which-Key
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :config (which-key-mode 1))
 #+END_SRC
 ** General
 #+begin_src emacs-lisp
   (use-package general
-    :after which-key
     :config (general-override-mode 1)
     (defun find-user-init-file ()
       "Edit the `user-init-file', in same window."
@@ -118,20 +138,27 @@ Other stuf i need to declutter later ..
 
     ;; Package manager
     "lp"  'list-packages
-    "f" '(:ignore t :which-key "File")
     ;; Window operations
     "w"   '(:ignore t :which-key "Window")
     "wm" 'maximize-window
-    "wh" 'split-window-horizontally
+    "wh" 'split-window-horizontally ;; TODO evil-split because moves cursor is nice - probably both h and H
     "wv" 'split-window-vertically
     "wm" 'maximize-window
     "wu" 'winner-undo
     "ww" 'other-window
     "wd" 'delete-window
     "wD" 'delete-other-windows
+    ;; file
+    "f"   '(:ignore t :wk "File")
+    "fd"  '(:ignore t :wk "Dotfile")
+    "fdr" '(load-user-init-file :wk "reload")
+    "fdo" '(find-user-init-file :wk "open ⚷")
     ;; Buffer
     "b" '(:ignore t :which-key "Buffer")) )
 #+end_src
+* Now General and diminish are available for use-package
+The :general keyword is a part of this package not a part of use-package, so you need to load general before using the keyword.
+Form noctuid in [[https://github.com/noctuid/general.el/issues/91#issuecomment-401544514][Github]]
 ** Helm
 Helm stuff
 #+BEGIN_SRC emacs-lisp
@@ -163,10 +190,26 @@ Install helm-org to find files with tags
 #+begin_src emacs-lisp
 (use-package evil-magit)
 #+end_src
+** Switching easily windows
+#+BEGIN_SRC emacs-lisp
+(use-package winum
+  :after general which-key
+  :defer t
+  :hook (after-init . winum-mode)
+  :general
+    (tyrant-def
+      "w1"  'winum-select-window-1
+      "w2"  'winum-select-window-2
+      "w3"  'winum-select-window-3
+      "w4"  'winum-select-window-4))
+#+END_SRC
 ** Haskell
 Stuff for haskell development
 #+BEGIN_SRC emacs-lisp
 (use-package haskell-mode)
+(require 'haskell-interactive-mode)
+(require 'haskell-process)
+(add-hook 'haskell-mode-hook 'interactive-haskell-mode)
 #+END_SRC
 ** Parentheses
 Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimiters such as parentheses, brackets or braces according to their depth. Each successive level is highlighted in a different color. This makes it easy to spot matching delimiters, orient yourself in the code, and tell which statements are at a given depth.
@@ -176,6 +219,7 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
 #+END_SRC
 
 ** Org-Mode
+*** Package
 #+BEGIN_SRC emacs-lisp
 (use-package org
   :defer t
@@ -188,15 +232,17 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
       (flyspell-mode)
       (outline-minor-mode)
       (electric-pair-mode))
-    (add-hook 'org-mode-hook 'my-org-mode-hooks)
-       :general
-         (despot-def org-mode-map
-           "e"   'org-export-dispatch
-           "t"   'org-hide-block-toggle
-           "x"   'org-babel-execute-src-block
-           "X"   'org-babel-execute-and-next
-           "d"   'org-babel-remove-result
-	   "s"   'org-insert-structure-template))
+   (add-hook 'org-mode-hook '(lambda ()
+                             (visual-line-mode)
+                             (org-indent-mode)))
+   :general
+     (despot-def org-mode-map
+       "e"   'org-export-dispatch
+       "t"   'org-hide-block-toggle
+       "x"   'org-babel-execute-src-block
+       "X"   'org-babel-execute-and-next
+       "d"   'org-babel-remove-result
+	     "s"   'org-insert-structure-template))
 #+END_SRC
 *** Adjust Agenda path
 #+BEGIN_SRC emacs-lisp
@@ -215,12 +261,13 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
     :general
     (tyrant-def
       "wh"  'evil-window-left
+      "w1"  'winum-select-window-1
       "wl"  'evil-window-right
       "wj"  'evil-window-down
       "wk"  'evil-window-up
       "bN"  'evil-buffer-new
-      "]b"  'evil-next-buffer
-      "[b"  'evil-prev-buffer))
+      "bn"  'evil-next-buffer
+      "bp"  'evil-prev-buffer))
    #+END_SRC
    Behaves like VIM :)
 *** Undo
@@ -237,10 +284,54 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
      (tyrant-def
       "u"  'undo-fu-only-undo
       "U"  'undo-fu-only-redo))
-   #+END_SRC
+   #+END_S
+** IMenu
+  #+BEGIN_SRC emacs-lisp
+  (use-package imenu-list)
+  #+END_SRC
 ** Hooks
-   *** No Trailing whitespaces
+*** No Trailing whitespaces
 I never want whitespace at the end of lines. Remove it on save.
 #+BEGIN_SRC emacs-lisp
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
+#+END_SRC
+** Powerline bar
+#+BEGIN_SRC emacs-lisp
+(use-package doom-modeline
+  :demand t
+  :ensure t
+  :ensure all-the-icons
+  :custom
+    (doom-modeline-icon (display-graphic-p))
+    (doom-modeline-modal-icon t)
+    (doom-modeline-major-mode-color-icon t)
+    (doom-modeline-major-mode-icon t)
+    (doom-modeline-buffer-state-icon t)
+    (doom-modeline-height 20)
+    (doom-modeline-bar-width 0)
+    (doom-modeline-buffer-modification-icon nil) ;; otherwise height is messed up for me
+  :config
+    (setq evil-normal-state-tag   (propertize "[Normal]" 'face '(:foreground "green"))
+      evil-emacs-state-tag    (propertize "[Emacs]" 'face '(:foreground "orange"))
+      evil-insert-state-tag   (propertize "[Insert]" 'face '(:foreground "purple"))
+      evil-motion-state-tag   (propertize "[Motion]" 'face '((:background "blue") :foreground "white"))
+      evil-visual-state-tag   (propertize "[Visual]" 'face '((:background "grey80" :foreground "black")))
+      evil-operator-state-tag (propertize "[Operator]" 'face '((:background "purple"))))
+;; Define your custom doom-modeline
+  (doom-modeline-def-segment evil-state
+  "The current evil state.  Requires `evil-mode' to be enabled."
+  (when (bound-and-true-p evil-local-mode)
+    (s-trim-right (evil-state-property evil-state :tag t))))
+
+  (doom-modeline-def-modeline 'my-simple-line
+    '(bar evil-state matches buffer-info remote-host buffer-position parrot selection-info)
+    '(misc-info minor-modes input-method buffer-encoding major-mode process vcs checker))
+
+  ;; Add to `doom-modeline-mode-hook` or other hooks
+  (defun setup-custom-doom-modeline ()
+     (doom-modeline-set-modeline 'my-simple-line 'default))
+  (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
+
+  :hook
+	  (after-init . doom-modeline-mode))
 #+END_SRC
