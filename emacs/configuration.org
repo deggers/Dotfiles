@@ -61,6 +61,7 @@ First screen will be Scratch-Blog
 For easier up and down jumping in evil-mode
 #+BEGIN_SRC emacs-lisp
 (setq display-line-numbers-type 'relative)
+(setq display-line-numbers-mode t)
 #+END_SRC
 ** Theme
 #+BEGIN_SRC emacs-lisp
@@ -189,11 +190,15 @@ For easier up and down jumping in evil-mode
     "wD" 'delete-other-windows
     ;; file
     "f"   '(:ignore t :wk "File")
+    "fs"  '(save-buffer :wk "safe")
     "fd"  '(:ignore t :wk "Dotfile")
     "fdr" '(load-user-init-file :wk "reload")
     "fdo" '(find-user-init-file :wk "open ⚷")
     ;; Buffer
-    "b" '(:ignore t :which-key "Buffer")) )
+    "b" '(:ignore t :which-key "Buffer")
+    ;; Goto
+    "g" '(:ignore t :which-key "Goto")
+))
 #+end_src
 * Now General and diminish are available for use-package
 The :general keyword is a part of this package not a part of use-package, so you need to load general before using the keyword.
@@ -328,10 +333,20 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
      (tyrant-def
       "u"  'undo-fu-only-undo
       "U"  'undo-fu-only-redo))
-   #+END_S
+   #+END_SRC
+** Jumping around with avy
+  #+BEGIN_SRC emacs-lisp
+  (use-package avy
+  :general
+   (tyrant-def
+    "g SPC" 'evil-avy-goto-char-timer))
+  #+END_SRC
 ** IMenu
   #+BEGIN_SRC emacs-lisp
-  (use-package imenu-list)
+  (use-package imenu-list
+    :config
+    (setq imenu-list-auto-resize t)
+    (setq imenu-list-focus-after-activation t))
   #+END_SRC
 ** Hooks
 *** No Trailing whitespaces

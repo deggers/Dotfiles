@@ -6,7 +6,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(doom-modeline doom-themes diminish winum haskell-process haskell-interactive-mode haskell-mode which-key use-package undo-fu rainbow-delimiters org-plus-contrib helm general evil elisp-format dracula-theme))
+   '(avy git-gutter imenu-list doom-modeline doom-themes diminish winum haskell-process haskell-interactive-mode haskell-mode which-key use-package undo-fu rainbow-delimiters org-plus-contrib helm general evil elisp-format dracula-theme))
  '(winum-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
