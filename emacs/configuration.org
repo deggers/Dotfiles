@@ -52,82 +52,56 @@ Disables UI-Elements to enforce use of keyboard
    #+BEGIN_SRC emacs-lisp
    (set-frame-font "Source Code Pro-12" nil t)
    #+END_SRC
+** Line numbers
+For easier up and down jumping in evil-mode
+#+BEGIN_SRC emacs-lisp
+(setq-default display-line-numbers 'visual
+              display-line-numbers-type 'relative
+              display-line-numbers-width 4
+              display-line-numbers-widen t)
+(set-face-attribute 'line-number-current-line nil
+                    :background "white" :foreground "black")
+#+END_SRC
 ** Dialogs and Screens
 First screen will be Scratch-Blog
 #+BEGIN_SRC emacs-lisp
    (setq inhibit-splash-screen t)
 #+END_SRC
-
-For easier up and down jumping in evil-mode
-#+BEGIN_SRC emacs-lisp
-(setq display-line-numbers-type 'relative)
-(setq display-line-numbers-mode t)
-#+END_SRC
 ** Theme
 #+BEGIN_SRC emacs-lisp
-(use-package doom-themes
-  :config
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-one t)
 
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
 
-  ;; Enable custom neotree theme (all-the-icons must be installed!)
-  (doom-themes-neotree-config)
-  ;; or for treemacs users
-  (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
-  (doom-themes-treemacs-config)
+(use-package modus-vivendi-theme
+:config
+(load-theme 'modus-vivendi t))
 
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
+(use-package modus-operandi-theme)
+
+(defun modus-themes-toggle ()
+  "Toggle between `modus-operandi' and `modus-vivendi' themes."
+  (interactive)
+  (if (eq (car custom-enabled-themes) 'modus-operandi)
+      (progn
+        (disable-theme 'modus-operandi)
+        (load-theme 'modus-vivendi t))
+    (disable-theme 'modus-vivendi)
+    (load-theme 'modus-operandi t)))
+
+
 #+END_SRC
 ** Powerline bar
 #+BEGIN_SRC emacs-lisp
-(use-package doom-modeline
-  :ensure t
-  :ensure all-the-icons
-  :custom
-    (doom-modeline-icon (display-graphic-p))
-    (doom-modeline-modal-icon t)
-    (doom-modeline-major-mode-color-icon t)
-    (doom-modeline-major-mode-icon t)
-    (doom-modeline-buffer-state-icon t)
-    (doom-modeline-height 20)
-    (doom-modeline-bar-width 0)
-    (doom-modeline-buffer-modification-icon nil) ;; otherwise height is messed up for me
+(use-package powerline
   :config
-    (setq evil-normal-state-tag   (propertize "[Normal]" 'face '(:foreground "green"))
-      evil-emacs-state-tag    (propertize "[Emacs]" 'face '(:foreground "orange"))
-      evil-insert-state-tag   (propertize "[Insert]" 'face '(:foreground "purple"))
-      evil-motion-state-tag   (propertize "[Motion]" 'face '((:background "blue") :foreground "white"))
-      evil-visual-state-tag   (propertize "[Visual]" 'face '((:background "grey80" :foreground "black")))
-      evil-operator-state-tag (propertize "[Operator]" 'face '((:background "purple"))))
-;; Define your custom doom-modeline
-  (doom-modeline-def-segment evil-state
-  "The current evil state.  Requires `evil-mode' to be enabled."
-  (when (bound-and-true-p evil-local-mode)
-    (s-trim-right (evil-state-property evil-state :tag t))))
-
-  (doom-modeline-def-modeline 'my-simple-line
-    '(bar evil-state matches buffer-info remote-host buffer-position parrot selection-info)
-    '(misc-info minor-modes input-method buffer-encoding major-mode process vcs checker))
-
-  ;; Add to `doom-modeline-mode-hook` or other hooks
-  (defun setup-custom-doom-modeline ()
-     (doom-modeline-set-modeline 'my-simple-line 'default))
-  (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
-
-  :hook
-	  (after-init . doom-modeline-mode))
+   (setq-default mode-line-position "")) ;; I use line-number-mode instead
 #+END_SRC
 * Basic Packages
 ** Diminish
 #+begin_src emacs-lisp
 (use-package diminish
-  :config
+  :init
   (diminish 'eldoc-mode "")
+  (diminish 'org-indent-mode "")
   (diminish 'buffer-face-mode "")
   (diminish 'undo-tree-mode " Ⓤ"))
 #+end_src
@@ -142,63 +116,63 @@ For easier up and down jumping in evil-mode
 #+END_SRC
 ** General
 #+begin_src emacs-lisp
-  (use-package general
-    :config (general-override-mode 1)
-    (defun find-user-init-file ()
-      "Edit the `user-init-file', in same window."
-      (interactive)
-      (find-file user-init-file))
+    (use-package general
+      :config (general-override-mode 1)
+      (defun find-user-init-file ()
+        "Edit the `user-init-file', in same window."
+        (interactive)
+        (find-file user-init-file))
 
-    (defun load-user-init-file ()
-      "Load the `user-init-file', in same window."
-      (interactive)
-      (load-file user-init-file))
+      (defun load-user-init-file ()
+        "Load the `user-init-file', in same window."
+        (interactive)
+        (load-file user-init-file))
 
-    (general-create-definer tyrant-def
-      :states '(normal visual insert motion emacs)
-      :prefix "SPC"
-      :non-normal-prefix "C-SPC")
+      (general-create-definer tyrant-def
+        :states '(normal visual insert motion emacs)
+        :prefix "SPC"
+        :non-normal-prefix "C-SPC")
 
-    (general-create-definer despot-def
-      :states '(normal insert)
-      :prefix "SPC"
-      :non-normal-prefix "C-SPC")
+      (general-create-definer despot-def
+        :states '(normal insert)
+        :prefix "SPC"
+        :non-normal-prefix "C-SPC")
 
-   (general-define-key :keymaps 'key-translation-map
-			"ESC" (kbd "C-g"))
+     (general-define-key :keymaps 'key-translation-map
+                          "ESC" (kbd "C-g"))
 
-  (general-def "C-x x" 'eval-defun)
+    (general-def "C-x x" 'eval-defun)
 
-  (tyrant-def
-    ""     nil
-    "c"   (general-simulate-key "C-c")
-    "h"   (general-simulate-key "C-h")
-    "u"   (general-simulate-key "C-u")
-    "x"   (general-simulate-key "C-x")
-    "a"   '(:ignore t :which-key "Apps")
-    ;; Package manager
-    "lp"  'list-packages
-    ;; Window operations
-    "w"   '(:ignore t :which-key "Window")
-    "wm" 'maximize-window
-    "wh" 'split-window-horizontally ;; TODO evil-split because moves cursor is nice - probably both h and H
-    "wv" 'split-window-vertically
-    "wm" 'maximize-window
-    "wu" 'winner-undo
-    "ww" 'other-window
-    "wd" 'delete-window
-    "wD" 'delete-other-windows
-    ;; file
-    "f"   '(:ignore t :wk "File")
-    "fs"  '(save-buffer :wk "safe")
-    "fd"  '(:ignore t :wk "Dotfile")
-    "fdr" '(load-user-init-file :wk "reload")
-    "fdo" '(find-user-init-file :wk "open ⚷")
-    ;; Buffer
-    "b" '(:ignore t :which-key "Buffer")
-    ;; Goto
-    "g" '(:ignore t :which-key "Goto")
-))
+    (tyrant-def
+      ""     nil
+      "c"   (general-simulate-key "C-c")
+      "h"   (general-simulate-key "C-h")
+      "u"   (general-simulate-key "C-u")
+      "x"   (general-simulate-key "C-x")
+      "g"   '(:ignore t :which-key "Git")
+      ;; Package manager
+      "lp"  'list-packages
+      ;; Window operations
+      "w"   '(:ignore t :which-key "Window")
+      "wm" 'maximize-window
+      "wh" 'split-window-horizontally ;; TODO evil-split because moves cursor is nice - probably both h and H
+      "wv" 'split-window-vertically
+      "wm" 'maximize-window
+      "wu" 'winner-undo
+      "ww" 'other-window
+      "wd" 'delete-window
+      "wD" 'delete-other-windows
+      ;; file
+      "f"   '(:ignore t :wk "File")
+      "fs"  '(save-buffer :wk "safe")
+      "fd"  '(:ignore t :wk "Dotfile")
+      "fdr" '(load-user-init-file :wk "reload")
+      "fdo" '(find-user-init-file :wk "open ⚷")
+      ;; Buffer
+      "b" '(:ignore t :which-key "Buffer")
+      ;; Toggle
+      "t" '(:ignore t :wk "Toggle")
+  ))
 #+end_src
 * Now General and diminish are available for use-package
 The :general keyword is a part of this package not a part of use-package, so you need to load general before using the keyword.
@@ -228,21 +202,153 @@ Helm stuff
 ** Helm-Org
 Install helm-org to find files with tags
 #+BEGIN_SRC emacs-lisp
-(use-package helm-org)
+  (use-package helm-org)
+#+END_SRC
+** Magit
+#+BEGIN_SRC emacs-lisp
+  (use-package magit)
 #+END_SRC
 ** Evil-Magit
 #+begin_src emacs-lisp
-(use-package evil-magit
+  (use-package evil-magit
+      :after magit evil
+      :general
+        (tyrant-def
+          "gg" 'magit-status))
+#+end_src
+** Adding Treemacs
+According from following blog i chosed following src
+#+BEGIN_SRC emacs-lisp
+  (use-package treemacs
+    :ensure t
+    :defer t
+    :init
+    (with-eval-after-load 'winum
+      (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+    :config
+    (progn
+      (setq treemacs-collapse-dirs                 (if treemacs-python-executable 3 0)
+            treemacs-deferred-git-apply-delay      0.5
+            treemacs-directory-name-transformer    #'identity
+            treemacs-display-in-side-window        t
+            treemacs-eldoc-display                 t
+            treemacs-file-event-delay              5000
+            treemacs-file-extension-regex          treemacs-last-period-regex-value
+            treemacs-file-follow-delay             0.2
+            treemacs-file-name-transformer         #'identity
+            treemacs-follow-after-init             t
+            treemacs-git-command-pipe              ""
+            treemacs-goto-tag-strategy             'refetch-index
+            treemacs-indentation                   2
+            treemacs-indentation-string            " "
+            treemacs-is-never-other-window         nil
+            treemacs-max-git-entries               5000
+            treemacs-missing-project-action        'ask
+            treemacs-move-forward-on-expand        nil
+            treemacs-no-png-images                 nil
+            treemacs-no-delete-other-windows       t
+            treemacs-project-follow-cleanup        nil
+            treemacs-persist-file                  (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+            treemacs-position                      'left
+            treemacs-recenter-distance             0.1
+            treemacs-recenter-after-file-follow    nil
+            treemacs-recenter-after-tag-follow     nil
+            treemacs-recenter-after-project-jump   'always
+            treemacs-recenter-after-project-expand 'on-distance
+            treemacs-show-cursor                   nil
+            treemacs-show-hidden-files             t
+            treemacs-silent-filewatch              nil
+            treemacs-silent-refresh                nil
+            treemacs-sorting                       'alphabetic-asc
+            treemacs-space-between-root-nodes      t
+            treemacs-tag-follow-cleanup            t
+            treemacs-tag-follow-delay              1.5
+            treemacs-user-mode-line-format         nil
+            treemacs-user-header-line-format       nil
+            treemacs-width                         35
+            treemacs-workspace-switch-cleanup      nil)
+
+      ;; The default width and height of the icons is 22 pixels. If you are
+      ;; using a Hi-DPI display, uncomment this to double the icon size.
+      (treemacs-resize-icons 12)
+
+      (treemacs-follow-mode t)
+      (treemacs-filewatch-mode t)
+      (treemacs-fringe-indicator-mode t)
+      (pcase (cons (not (null (executable-find "git")))
+                   (not (null treemacs-python-executable)))
+        (`(t . t)
+         (treemacs-git-mode 'deferred))
+        (`(t . _)
+         (treemacs-git-mode 'simple))))
+    :general
+    (tyrant-def
+      "tt" 'treemacs)
+    :bind
+    (:map global-map
+          ("M-0"       . treemacs-select-window)
+          ("C-x t 1"   . treemacs-delete-other-windows)
+          ("C-x t t"   . treemacs)
+          ("C-x t B"   . treemacs-bookmark)
+          ("C-x t C-t" . treemacs-find-file)
+          ("C-x t M-t" . treemacs-find-tag)))
+
+  (use-package treemacs-evil
+    :after treemacs evil
+    :ensure t)
+
+  (use-package treemacs-projectile
+    :after treemacs projectile
+    :ensure t)
+
+  (use-package treemacs-icons-dired
+    :after treemacs dired
+    :ensure t
+    :config (treemacs-icons-dired-mode))
+
+  (use-package treemacs-magit
+    :after treemacs magit
+    :ensure t)
+#+END_SRC
+** Play youtube
+#+BEGIN_SRC emacs-lisp
+  (defun my-play-yt (url)
+    (interactive "sUrl: ")
+    (start-process "vlc" nil "cvlc" "--play-and-exit" url))
+#+END_SRC
+** Neotree
+#+BEGIN_SRC emacs-lisp
+  (use-package neotree
+    :ensure t
     :general
       (tyrant-def
-        "am" 'magit-status))
-#+end_src
+       "tn" 'neotree-toggle)
+    :config
+    (setq projectile-switch-project-action 'neotree-projectile-action)
+    (add-hook 'neotree-mode-hook
+      (lambda ()
+        (define-key evil-normal-state-local-map (kbd "q") 'neotree-hide)
+        (define-key evil-normal-state-local-map (kbd "I") 'neotree-hidden-file-toggle)
+        (define-key evil-normal-state-local-map (kbd "z") 'neotree-stretch-toggle)
+        (define-key evil-normal-state-local-map (kbd "R") 'neotree-refresh)
+        (define-key evil-normal-state-local-map (kbd "m") 'neotree-rename-node)
+        (define-key evil-normal-state-local-map (kbd "c") 'neotree-create-node)
+        (define-key evil-normal-state-local-map (kbd "d") 'neotree-delete-node)
+
+        (define-key evil-normal-state-local-map (kbd "s") 'neotree-enter-vertical-split)
+        (define-key evil-normal-state-local-map (kbd "S") 'neotree-enter-horizontal-split)
+
+        (define-key evil-normal-state-local-map (kbd "RET") 'neotree-enter))))
+#+END_SRC
 ** Switching easily windows
 #+BEGIN_SRC emacs-lisp
 (use-package winum
   :after general which-key
   :defer t
   :hook (after-init . winum-mode)
+  :bind
+  (:map global-map
+        ("M-1"       . winum-select-window-1))
   :general
     (tyrant-def
       "w1"  'winum-select-window-1
@@ -264,7 +370,20 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 #+END_SRC
-
+** Projectile
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :config
+    (projectile-mode +1))
+#+END_SRC
+** YAS-Snippet
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :config
+    (add-to-list 'load-path
+                "~/.emacs.d/plugins/yasnippet")
+    (yas-global-mode 1))
+#+END_SRC
 ** Org-Mode
 *** Package
 #+BEGIN_SRC emacs-lisp
@@ -274,8 +393,6 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
   :ensure org-plus-contrib
   :init
     (defun my-org-mode-hooks ()
-      (visual-line-mode)
-      (display-line-numbers-mode t)
       (flyspell-mode)
       (outline-minor-mode)
       (electric-pair-mode))
@@ -289,6 +406,7 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
        "x"   'org-babel-execute-src-block
        "X"   'org-babel-execute-and-next
        "d"   'org-babel-remove-result
+       "c"   'org-edit-special
 	     "s"   'org-insert-structure-template))
 #+END_SRC
 *** Adjust Agenda path
@@ -318,28 +436,51 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
       "bn"  'evil-next-buffer
       "bp"  'evil-prev-buffer))
    #+END_SRC
-   Behaves like VIM :)
-*** Undo
-   The default undo behavior in Evil is too coarse-grained because it considers anything taking place between entering insert mode and leaving it as one edit operation. When you enter a whole paragraph of text during one insert and then execute undo, the whole paragraph is removed. In contrast to that, Vim starts a new undo unit whenever you move the cursor in insert mode by means other than entering text.
+   Behaves like VIM :
+*** Evil-Multiedit
+#+BEGIN_SRC emacs-lisp
+(use-package evil-multiedit)
+;; Highlights all matches of the selection in the buffer.
+(define-key evil-visual-state-map "R" 'evil-multiedit-match-all)
+;; Match the word under cursor (i.e. make it an edit region). Consecutive presses will
+;; incrementally add the next unmatched match.
+(define-key evil-normal-state-map (kbd "M-d") 'evil-multiedit-match-and-next)
+;; Match selected region.
+(define-key evil-visual-state-map (kbd "M-d") 'evil-multiedit-match-and-next)
+;; Insert marker at point
+(define-key evil-insert-state-map (kbd "M-d") 'evil-multiedit-toggle-marker-here)
 
-   Like in Doom i use undo-fu https://github.com/hlissner/doom-emacs/issues/2339#issuecomment-610706411
-"undo-tree prematurely and unpredictably truncates undo history. This is better than total data corruption, but still makes me nervous about undoing beyond ~5 steps. Undo-fu doesn't appear to suffer the same problem. We sacrifice the tree-visualizer, but at least we get history persistence with undo-fu-session."
-   #+BEGIN_SRC emacs-lisp
-   (use-package undo-fu
-     :ensure t
-     :config
-       (global-undo-tree-mode -1)
-     :general
-     (tyrant-def
-      "u"  'undo-fu-only-undo
-      "U"  'undo-fu-only-redo))
-   #+END_SRC
+;; Same as M-d but in reverse.
+(define-key evil-normal-state-map (kbd "M-D") 'evil-multiedit-match-and-prev)
+(define-key evil-visual-state-map (kbd "M-D") 'evil-multiedit-match-and-prev)
+
+;; OPTIONAL: If you prefer to grab symbols rather than words, use
+;; `evil-multiedit-match-symbol-and-next` (or prev).
+
+;; Restore the last group of multiedit regions.
+(define-key evil-visual-state-map (kbd "C-M-D") 'evil-multiedit-restore)
+
+;; RET will toggle the region under the cursor
+(define-key evil-multiedit-state-map (kbd "RET") 'evil-multiedit-toggle-or-restrict-region)
+
+;; ...and in visual mode, RET will disable all fields outside the selected region
+(define-key evil-motion-state-map (kbd "RET") 'evil-multiedit-toggle-or-restrict-region)
+
+;; For moving between edit regions
+(define-key evil-multiedit-state-map (kbd "C-n") 'evil-multiedit-next)
+(define-key evil-multiedit-state-map (kbd "C-p") 'evil-multiedit-prev)
+(define-key evil-multiedit-insert-state-map (kbd "C-n") 'evil-multiedit-next)
+(define-key evil-multiedit-insert-state-map (kbd "C-p") 'evil-multiedit-prev)
+
+;; Ex command that allows you to invoke evil-multiedit with a regular expression, e.g.
+(evil-ex-define-cmd "ie[dit]" 'evil-multiedit-ex-match)
+#+END_SRC
 ** Jumping around with avy
   #+BEGIN_SRC emacs-lisp
-  (use-package avy
-  :general
-   (tyrant-def
-    "g SPC" 'evil-avy-goto-char-timer))
+    (use-package avy
+    :general
+     (tyrant-def
+      "SPC" 'evil-avy-goto-char-timer))
   #+END_SRC
 ** IMenu
   #+BEGIN_SRC emacs-lisp
