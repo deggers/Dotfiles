@@ -339,19 +339,22 @@ According from following blog i chosed following src
 #+END_SRC
 ** Switching easily windows
 #+BEGIN_SRC emacs-lisp
-(use-package winum
-  :after general which-key
-  :defer t
-  :hook (after-init . winum-mode)
-  :bind
-  (:map global-map
-        ("M-1"       . winum-select-window-1))
-  :general
-    (tyrant-def
-      "w1"  'winum-select-window-1
-      "w2"  'winum-select-window-2
-      "w3"  'winum-select-window-3
-      "w4"  'winum-select-window-4))
+  (use-package winum
+    :after general which-key
+    :defer t
+    :hook (after-init . winum-mode)
+    :bind
+    (:map global-map
+          ("M-1" . winum-select-window-1)
+          ("M-2" . winum-select-window-2)
+          ("M-3" . winum-select-window-3)
+          ("M-4" . winum-select-window-4))
+    :general
+      (tyrant-def
+        "w1"  'winum-select-window-1
+        "w2"  'winum-select-window-2
+        "w3"  'winum-select-window-3
+        "w4"  'winum-select-window-4))
 #+END_SRC
 ** Haskell
 Stuff for haskell development
