@@ -105,10 +105,6 @@ First screen will be Scratch-Blog
   (diminish 'buffer-face-mode "")
   (diminish 'undo-tree-mode " Ⓤ"))
 #+end_src
-#+BEGIN_SRC emacs-lisp
-  (use-package which-key
-    :config (which-key-mode 1))
-#+END_SRC
 ** Which-Key
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
@@ -116,62 +112,63 @@ First screen will be Scratch-Blog
 #+END_SRC
 ** General
 #+begin_src emacs-lisp
-    (use-package general
-      :config (general-override-mode 1)
-      (defun find-user-init-file ()
-        "Edit the `user-init-file', in same window."
-        (interactive)
-        (find-file user-init-file))
+   (use-package general
+     :config (general-override-mode 1)
+     (defun find-user-init-file ()
+       "Edit the `user-init-file', in same window."
+       (interactive)
+       (find-file user-init-file))
 
-      (defun load-user-init-file ()
-        "Load the `user-init-file', in same window."
-        (interactive)
-        (load-file user-init-file))
+     (defun load-user-init-file ()
+       "Load the `user-init-file', in same window."
+       (interactive)
+       (load-file user-init-file))
 
-      (general-create-definer tyrant-def
-        :states '(normal visual insert motion emacs)
-        :prefix "SPC"
-        :non-normal-prefix "C-SPC")
+     (general-create-definer tyrant-def
+       :states '(normal visual insert motion emacs)
+       :prefix "SPC"
+       :non-normal-prefix "C-SPC")
 
-      (general-create-definer despot-def
-        :states '(normal insert)
-        :prefix "SPC"
-        :non-normal-prefix "C-SPC")
+     (general-create-definer despot-def
+       :states '(normal insert)
+       :prefix "SPC"
+       :non-normal-prefix "C-SPC")
 
-     (general-define-key :keymaps 'key-translation-map
-                          "ESC" (kbd "C-g"))
+    (general-define-key :keymaps 'key-translation-map
+                         "ESC" (kbd "C-g"))
 
-    (general-def "C-x x" 'eval-defun)
+   (general-def "C-x x" 'eval-defun)
 
-    (tyrant-def
-      ""     nil
-      "c"   (general-simulate-key "C-c")
-      "h"   (general-simulate-key "C-h")
-      "u"   (general-simulate-key "C-u")
-      "x"   (general-simulate-key "C-x")
-      "g"   '(:ignore t :which-key "Git")
-      ;; Package manager
-      "lp"  'list-packages
-      ;; Window operations
-      "w"   '(:ignore t :which-key "Window")
-      "wm" 'maximize-window
-      "wh" 'split-window-horizontally ;; TODO evil-split because moves cursor is nice - probably both h and H
-      "wv" 'split-window-vertically
-      "wm" 'maximize-window
-      "wu" 'winner-undo
-      "ww" 'other-window
-      "wd" 'delete-window
-      "wD" 'delete-other-windows
-      ;; file
-      "f"   '(:ignore t :wk "File")
-      "fs"  '(save-buffer :wk "safe")
-      "fd"  '(:ignore t :wk "Dotfile")
-      "fdr" '(load-user-init-file :wk "reload")
-      "fdo" '(find-user-init-file :wk "open ⚷")
-      ;; Buffer
-      "b" '(:ignore t :which-key "Buffer")
-      ;; Toggle
-      "t" '(:ignore t :wk "Toggle")
+   (tyrant-def
+     ""     nil
+     "c"   (general-simulate-key "C-c")
+     "h"   (general-simulate-key "C-h")
+     "u"   (general-simulate-key "C-u")
+     "x"   (general-simulate-key "C-x")
+     ;; Package manager
+     "lp"  'list-packages
+     ;; Window operations
+     "w"   '(:ignore t :which-key "Window")
+     "wm" 'maximize-window
+     "wh" 'split-window-horizontally ;; TODO evil-split because moves cursor is nice - probably both h and H
+     "wv" 'split-window-vertically
+     "wm" 'maximize-window
+     "wu" 'winner-undo
+     "ww" 'other-window
+     "wd" 'delete-window
+     "wD" 'delete-other-windows
+     ;; file
+     "f"   '(:ignore t :wk "File")
+     "fs"  '(save-buffer :wk "safe")
+     "fd"  '(:ignore t :wk "Dotfile")
+     "fdr" '(load-user-init-file :wk "reload")
+     "fdo" '(find-user-init-file :wk "open ⚷")
+     ;; Buffer
+     "b" '(:ignore t :which-key "Buffer")
+     ;; Toggle
+     "t" '(:ignore t :wk "Toggle")
+     ;; Git
+     "g" '(:ignore t :wk "Git")
   ))
 #+end_src
 * Now General and diminish are available for use-package
@@ -206,16 +203,16 @@ Install helm-org to find files with tags
 #+END_SRC
 ** Magit
 #+BEGIN_SRC emacs-lisp
-  (use-package magit)
+  (use-package magit
+    :general
+    (tyrant-def
+      "gg" '(magit-status :wk "Magit")))
 #+END_SRC
 ** Evil-Magit
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package evil-magit
-      :after magit evil
-      :general
-        (tyrant-def
-          "gg" 'magit-status))
-#+end_src
+    :after magit evil)
+#+END_SRC
 ** Adding Treemacs
 According from following blog i chosed following src
 #+BEGIN_SRC emacs-lisp
@@ -437,50 +434,12 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
       "bp"  'evil-prev-buffer))
    #+END_SRC
    Behaves like VIM :
-*** Evil-Multiedit
-#+BEGIN_SRC emacs-lisp
-(use-package evil-multiedit)
-;; Highlights all matches of the selection in the buffer.
-(define-key evil-visual-state-map "R" 'evil-multiedit-match-all)
-;; Match the word under cursor (i.e. make it an edit region). Consecutive presses will
-;; incrementally add the next unmatched match.
-(define-key evil-normal-state-map (kbd "M-d") 'evil-multiedit-match-and-next)
-;; Match selected region.
-(define-key evil-visual-state-map (kbd "M-d") 'evil-multiedit-match-and-next)
-;; Insert marker at point
-(define-key evil-insert-state-map (kbd "M-d") 'evil-multiedit-toggle-marker-here)
-
-;; Same as M-d but in reverse.
-(define-key evil-normal-state-map (kbd "M-D") 'evil-multiedit-match-and-prev)
-(define-key evil-visual-state-map (kbd "M-D") 'evil-multiedit-match-and-prev)
-
-;; OPTIONAL: If you prefer to grab symbols rather than words, use
-;; `evil-multiedit-match-symbol-and-next` (or prev).
-
-;; Restore the last group of multiedit regions.
-(define-key evil-visual-state-map (kbd "C-M-D") 'evil-multiedit-restore)
-
-;; RET will toggle the region under the cursor
-(define-key evil-multiedit-state-map (kbd "RET") 'evil-multiedit-toggle-or-restrict-region)
-
-;; ...and in visual mode, RET will disable all fields outside the selected region
-(define-key evil-motion-state-map (kbd "RET") 'evil-multiedit-toggle-or-restrict-region)
-
-;; For moving between edit regions
-(define-key evil-multiedit-state-map (kbd "C-n") 'evil-multiedit-next)
-(define-key evil-multiedit-state-map (kbd "C-p") 'evil-multiedit-prev)
-(define-key evil-multiedit-insert-state-map (kbd "C-n") 'evil-multiedit-next)
-(define-key evil-multiedit-insert-state-map (kbd "C-p") 'evil-multiedit-prev)
-
-;; Ex command that allows you to invoke evil-multiedit with a regular expression, e.g.
-(evil-ex-define-cmd "ie[dit]" 'evil-multiedit-ex-match)
-#+END_SRC
-** Jumping around with avy
+** Avy
   #+BEGIN_SRC emacs-lisp
     (use-package avy
     :general
      (tyrant-def
-      "SPC" 'evil-avy-goto-char-timer))
+      "SPC" '(evil-avy-goto-char-timer :wk "avy-find")))
   #+END_SRC
 ** IMenu
   #+BEGIN_SRC emacs-lisp
