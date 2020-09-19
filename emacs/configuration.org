@@ -50,10 +50,13 @@ Disables UI-Elements to enforce use of keyboard
 ** Autosave and Backups
 Don’t clutter up file tree with Emacs’ backup files, save them to the system’s “temp” directory:
 #+BEGIN_SRC emacs-lisp
-    (setq backup-directory-alist
-          `((".*" . ,temporary-file-directory)))
-    (setq auto-save-file-name-transforms
-          `((".*" ,temporary-file-directory t)))
+  (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
+    backup-by-copying t    ; Don't delink hardlinks
+    version-control t      ; Use version numbers on backups
+    delete-old-versions t  ; Automatically delete excess backups
+    kept-new-versions 20   ; how many of the newest versions to keep
+    kept-old-versions 5    ; and how many of the old
+    )
 #+END_SRC
 ** Font
    Adjust the font
