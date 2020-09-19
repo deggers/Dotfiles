@@ -313,6 +313,16 @@ According from following blog i chosed following src
     (interactive "sUrl: ")
     (start-process "vlc" nil "cvlc" "--play-and-exit" url))
 #+END_SRC
+** Browse youtube
+#+BEGIN_SRC emacs-lisp
+  (use-package helm-youtube
+    :init
+    (setq browse-url-browser-function 'browse-url-generic)
+    (setq browse-url-generic-program "vlc"))
+    :general
+    (tyrant-def
+      "y" '(helm-youtube :wk "Browse yt"))
+#+END_SRC
 ** Neotree
 #+BEGIN_SRC emacs-lisp
   (use-package neotree
