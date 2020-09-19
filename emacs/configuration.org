@@ -47,6 +47,14 @@ Disables UI-Elements to enforce use of keyboard
 (toggle-scroll-bar -1)
 (tool-bar-mode -1)
 #+END_SRC
+** Autosave and Backups
+Don’t clutter up file tree with Emacs’ backup files, save them to the system’s “temp” directory:
+#+BEGIN_SRC emacs-lisp
+    (setq backup-directory-alist
+          `((".*" . ,temporary-file-directory)))
+    (setq auto-save-file-name-transforms
+          `((".*" ,temporary-file-directory t)))
+#+END_SRC
 ** Font
    Adjust the font
    #+BEGIN_SRC emacs-lisp
@@ -69,25 +77,21 @@ First screen will be Scratch-Blog
 #+END_SRC
 ** Theme
 #+BEGIN_SRC emacs-lisp
+  (use-package modus-vivendi-theme
+  :config
+  (load-theme 'modus-vivendi t))
 
+  (use-package modus-operandi-theme)
 
-(use-package modus-vivendi-theme
-:config
-(load-theme 'modus-vivendi t))
-
-(use-package modus-operandi-theme)
-
-(defun modus-themes-toggle ()
-  "Toggle between `modus-operandi' and `modus-vivendi' themes."
-  (interactive)
-  (if (eq (car custom-enabled-themes) 'modus-operandi)
-      (progn
-        (disable-theme 'modus-operandi)
-        (load-theme 'modus-vivendi t))
-    (disable-theme 'modus-vivendi)
-    (load-theme 'modus-operandi t)))
-
-
+  (defun modus-themes-toggle ()
+    "Toggle between `modus-operandi' and `modus-vivendi' themes."
+    (interactive)
+    (if (eq (car custom-enabled-themes) 'modus-operandi)
+        (progn
+          (disable-theme 'modus-operandi)
+          (load-theme 'modus-vivendi t))
+      (disable-theme 'modus-vivendi)
+      (load-theme 'modus-operandi t)))
 #+END_SRC
 ** Powerline bar
 #+BEGIN_SRC emacs-lisp
