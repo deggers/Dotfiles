@@ -102,6 +102,37 @@ First screen will be Scratch-Blog
   :config
    (setq-default mode-line-position "")) ;; I use line-number-mode instead
 #+END_SRC
+** Use GPG
+*** EPA
+#+BEGIN_SRC emacs-lisp
+  ; gpg
+  (require 'epa-file)
+  (custom-set-variables '(epg-gpg-program  "/usr/bin/gpg2"))
+  (epa-file-enable)
+#+END_SRC
+*** Security
+If Emacs doesn’t receive input for 60 seconds your GPG buffers get saved and killed. This time frame is configurable and should factor in the sensitivity of your files and what you personally feel comfortable with. [[https://www.bytedude.com/secure-gpg-in-emacs/][Source]]
+#+BEGIN_SRC emacs-lisp
+;; Adapted from https://stackoverflow.com/a/15854362/6085242.
+(defun kill-gpg-buffers ()
+  "Kill GPG buffers."
+  (interactive)
+  (let ((buffers-killed 0))
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when (string-match ".*\.gpg$" (buffer-name buffer))
+          (message "Auto killing .gpg buffer '%s'" (buffer-name buffer))
+          (when (buffer-modified-p buffer)
+            (save-buffer))
+          (kill-buffer buffer)
+          (setq buffers-killed (+ buffers-killed 1)))))
+    (unless (zerop buffers-killed)
+      ;; Kill gpg-agent.
+      (shell-command "gpgconf --kill gpg-agent")
+      (message "%s .gpg buffers have been autosaved and killed" buffers-killed))))
+
+(run-with-idle-timer 60 t 'kill-gpg-buffers)
+#+END_SRC
 * Basic Packages
 ** Diminish
 #+begin_src emacs-lisp
