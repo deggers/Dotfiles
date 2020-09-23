@@ -410,11 +410,12 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
             :defer t
             :mode ("\\.org\\'" . org-mode)
             :ensure org-plus-contrib
+            :config
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (latex . t)))
             :init
-              (defun my-org-mode-hooks ()
-                (flyspell-mode)
-                (outline-minor-mode)
-                (electric-pair-mode))
              (add-hook 'org-mode-hook '(lambda ()
                                        (visual-line-mode)
                                        (org-indent-mode)))
