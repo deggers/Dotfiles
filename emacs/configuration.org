@@ -58,6 +58,10 @@ Don’t clutter up file tree with Emacs’ backup files, save them to the system
     kept-old-versions 5    ; and how many of the old
     )
 #+END_SRC
+But please save as well version controlled files anyway
+#+BEGIN_SRC emacs-lisp
+(setq vc-make-backup-files t)
+#+END_SRC
 ** Font
    Adjust the font
    #+BEGIN_SRC emacs-lisp
@@ -66,17 +70,19 @@ Don’t clutter up file tree with Emacs’ backup files, save them to the system
 ** Line numbers
 For easier up and down jumping in evil-mode
 #+BEGIN_SRC emacs-lisp
-(setq-default display-line-numbers 'visual
-              display-line-numbers-type 'relative
-              display-line-numbers-width 4
-              display-line-numbers-widen t)
-(set-face-attribute 'line-number-current-line nil
-                    :background "white" :foreground "black")
 #+END_SRC
 ** Dialogs and Screens
 First screen will be Scratch-Blog
 #+BEGIN_SRC emacs-lisp
    (setq inhibit-splash-screen t)
+#+END_SRC
+New buffers that are not the *scratch* buffer, should default to fundamental-mode; e.g., when calling get-buffer-create. As to the *scratch* buffer, you can customize the initial-major-mode variable:w
+#+BEGIN_SRC emacs-lisp
+(setq initial-major-mode 'org-mode)
+#+END_SRC
+The following will set the inital message to empty
+#+BEGIN_SRC emacs-lisp
+(setq initial-scratch-message nil)
 #+END_SRC
 ** Theme
 #+BEGIN_SRC emacs-lisp
@@ -188,13 +194,14 @@ If Emacs doesn’t receive input for 60 seconds your GPG buffers get saved and k
      ;; Window operations
      "w"   '(:ignore t :which-key "Window")
      "wm" 'maximize-window
-     "wh" 'split-window-horizontally ;; TODO evil-split because moves cursor is nice - probably both h and H
+     "ws" 'split-window-horizontally ;; TODO evil-split because moves cursor is nice - probably both h and H
      "wv" 'split-window-vertically
      "wm" 'maximize-window
      "wu" 'winner-undo
      "ww" 'other-window
      "wd" 'delete-window
      "wD" 'delete-other-windows
+     "c" '(org-capture :wk "capture")
      ;; file
      "f"   '(:ignore t :wk "File")
      "fs"  '(save-buffer :wk "safe")
@@ -205,6 +212,8 @@ If Emacs doesn’t receive input for 60 seconds your GPG buffers get saved and k
      "b" '(:ignore t :which-key "Buffer")
      ;; Toggle
      "t" '(:ignore t :wk "Toggle")
+     "ts" '(text-scale-adjust :wk "scale text")
+     "tl" '(display-line-numbers-mode :wk "line-numbers")
      ;; Git
      "g" '(:ignore t :wk "Git")
      ;; M-x
@@ -214,6 +223,18 @@ If Emacs doesn’t receive input for 60 seconds your GPG buffers get saved and k
 * Now General and diminish are available for use-package
 The :general keyword is a part of this package not a part of use-package, so you need to load general before using the keyword.
 Form noctuid in [[https://github.com/noctuid/general.el/issues/91#issuecomment-401544514][Github]]
+** vTerm
+#+BEGIN_SRC emacs-lisp
+  (use-package vterm
+      :ensure t)
+(defun evil-collection-vterm-escape-stay ()
+"Go back to normal state but don't move
+cursor backwards. Moving cursor backwards is the default vim behavior but it is
+not appropriate in some cases like terminals."
+(setq-local evil-move-cursor-back nil))
+
+(add-hook 'vterm-mode-hook #'evil-collection-vterm-escape-stay)
+#+END_SRC
 ** Helm
 Helm stuff
 #+BEGIN_SRC emacs-lisp
@@ -437,58 +458,98 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
 ** Org-Mode
 *** Package
 #+BEGIN_SRC emacs-lisp
-          (use-package org
-            :defer t
-            :mode ("\\.org\\'" . org-mode)
-            :ensure org-plus-contrib
-            :config
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((emacs-lisp . t)
-   (latex . t)))
-            :init
-             (add-hook 'org-mode-hook '(lambda ()
-                                       (visual-line-mode)
-                                       (org-indent-mode)))
-             :general
-               (despot-def org-mode-map
-                 "c"   'org-edit-special
-                 "s"   'org-insert-structure-template))
+  (use-package org
+    :defer t
+    :mode ("\\.org\\'" . org-mode)
+    :ensure org-plus-contrib
+    :config
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((emacs-lisp . t)
+       (latex . t)))
+    :init
+    (add-hook 'org-mode-hook '(lambda ()
+                                (visual-line-mode)
+                                (org-indent-mode)))
+    :general
+    (despot-def org-mode-map
+      "e"   'org-edit-special
+      "s"   'org-insert-structure-template))
 
   (general-define-key
-     :definer 'minor-mode
-     :states 'normal
-     :keymaps 'org-src-mode
-     "SPC c" 'org-edit-src-exit)
+   :definer 'minor-mode
+   :states 'normal
+   :keymaps 'org-src-mode
+   "SPC e" 'org-edit-src-exit)
 #+END_SRC
 *** Adjust Agenda path
 #+BEGIN_SRC emacs-lisp
-(setq org-agenda-files '("~/Org"))
+  (setq org-agenda-files '("~/gtd/inbox.org"
+                           "~/gtd/gtd.org"
+                           "~/gtd/tickler.org"))
+#+END_SRC
+*** Capturing
+#+BEGIN_SRC emacs-lisp
+(setq org-capture-templates '(("t" "Todo [inbox]" entry
+                               (file+headline "~/gtd/inbox.org" "Tasks")
+                               "* TODO %i%?")
+                              ("T" "Tickler" entry
+                               (file+headline "~/gtd/tickler.org" "Tickler")
+                               "* %i%? \n %U")))
+#+END_SRC
+*** Set up refile targets
+#+BEGIN_SRC emacs-lisp
+(setq org-refile-targets '(("~/gtd/gtd.org" :maxlevel . 3)
+                           ("~/gtd/someday.org" :level . 1)
+                           ("~/gtd/tickler.org" :maxlevel . 2)))
+#+END_SRC
+*** Minted style
+#+BEGIN_SRC emacs-lisp
+  (setq org-latex-listings 'minted
+        org-latex-packages-alist '(("" "minted"))
+        org-latex-pdf-process '("pdflatex -interaction nonstopmode -output-directory %o %f"
+	                              "bibtex %b"
+                                "pdflatex -interaction nonstopmode -output-directory %o %f"
+	                              "pdflatex -interaction nonstopmode -output-directory %o %f"))
+#+END_SRC
+*** Citation with org-ref
+#+BEGIN_SRC emacs-lisp
+  (use-package org-ref)
+;;    :config
+;; (setq org-latex-pdf-process '("latexmk -pdflatex='%latex -shell-escape -interaction nonstopmode' -pdf -output-directory=%o -f %f")))
 #+END_SRC
 ** Evil
 *** package
   #+BEGIN_SRC emacs-lisp
-  (use-package evil
-    :hook (after-init . evil-mode)
-    :config (evil-set-initial-state 'shell-mode 'normal)
-    (evil-set-initial-state 'doc-view-mode 'normal)
-    (evil-set-initial-state 'package-menu-mode 'normal)
-    (evil-set-initial-state 'biblio-selection-mode 'motion)
-    (setq evil-insert-state-cursor '((bar . 5) "yellow")
-      evil-normal-state-cursor '(box "purple"))
-    (setq doc-view-continuous t)
-    :general
-    (tyrant-def
-      "wh"  'evil-window-left
-      "w1"  'winum-select-window-1
-      "wl"  'evil-window-right
-      "wj"  'evil-window-down
-      "wk"  'evil-window-up
-      "bN"  'evil-buffer-new
-      "bn"  'evil-next-buffer
-      "bp"  'evil-prev-buffer))
+    (use-package evil
+      :hook (after-init . evil-mode)
+      :config (evil-set-initial-state 'shell-mode 'normal)
+      (evil-set-initial-state 'doc-view-mode 'normal)
+      (evil-set-initial-state 'package-menu-mode 'normal)
+      (evil-set-initial-state 'biblio-selection-mode 'motion)
+      (setq evil-insert-state-cursor '((bar . 5) "yellow")
+        evil-normal-state-cursor '(box "purple"))
+      (setq doc-view-continuous t)
+      (setq evil-want-fine-undo t)
+      :general
+      (tyrant-def
+        "wh"  'evil-window-left
+        "w1"  'winum-select-window-1
+        "wl"  'evil-window-right
+        "wj"  'evil-window-down
+        "wk"  'evil-window-up
+        "bN"  'evil-buffer-new
+        "bn"  'evil-next-buffer
+        "bp"  'evil-prev-buffer))
    #+END_SRC
    Behaves like VIM :
+*** Surround
+#+BEGIN_SRC emacs-lisp
+(use-package evil-surround
+  :ensure t
+  :config
+  (global-evil-surround-mode 1))
+#+END_SRC
 ** Avy
   #+BEGIN_SRC emacs-lisp
     (use-package avy
@@ -496,6 +557,25 @@ Rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimit
      (tyrant-def
       "SPC" '(evil-avy-goto-char-timer :wk "avy-find")))
   #+END_SRC
+** Programming
+*** Kotlin-Mode
+#+BEGIN_SRC emacs-lisp
+(use-package kotlin-mode)
+#+END_SRC
+*** Gradle Mode
+#+BEGIN_SRC emacs-lisp
+  (use-package gradle-mode
+    :config (gradle-mode 1))
+#+END_SRC
+*** Helm-Projectile
+#+BEGIN_SRC emacs-lisp
+  (use-package helm-projectile
+  :config (helm-projectile-on))
+#+END_SRC
+*** Helm-rg
+#+BEGIN_SRC emacs-lisp
+  (use-package helm-rg)
+#+END_SRC
 ** IMenu
   #+BEGIN_SRC emacs-lisp
   (use-package imenu-list
